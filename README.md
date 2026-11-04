@@ -1,6 +1,6 @@
 # Way Out Now — Foreclosure Exit Plan
 
-A five-question foreclosure assessment that captures the lead (GoHighLevel + Supabase) and shows a
+A five-question foreclosure assessment that captures the lead (GoHighLevel) and shows a
 personalized results page: free resources, approved partner offers, and a strategy-session CTA.
 Built with React, TypeScript, Vite, Tailwind CSS, and shadcn/ui.
 
