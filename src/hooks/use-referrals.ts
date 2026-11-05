@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { defaultReferrals } from "@/data/defaultReferrals";
 import type { ReferralCatalog, ReferralResponse } from "@/lib/referralTypes";
 
-const REFERRALS_URL = import.meta.env.VITE_REFERRALS_URL || "/api/referrals";
+const REFERRALS_URL = process.env.NEXT_PUBLIC_REFERRALS_URL || "/api/referrals";
 
 async function loadReferrals(): Promise<ReferralResponse> {
   const res = await fetch(REFERRALS_URL);

@@ -1,6 +1,6 @@
 import { ForeclosureQuizApp } from "@/components/ForeclosureQuizApp";
 
-const Index = () => {
+export const QuizPage = ({ initialData }: { initialData?: string }) => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
       {/* Background visual elements */}
@@ -17,7 +17,7 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 pb-24 pt-8 flex-grow">
-        <ForeclosureQuizApp />
+        <ForeclosureQuizApp initialData={initialData} />
       </main>
 
       <footer className="border-t bg-muted/10 py-8 text-xs text-muted-foreground mt-auto z-10 relative">
@@ -34,5 +34,3 @@ const Index = () => {
     </div>
   );
 };
-
-export default Index;

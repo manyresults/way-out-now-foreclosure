@@ -1,4 +1,4 @@
-import type { AffiliateProgram, FreeReferral, ReferralResponse } from "../src/lib/referralTypes";
+import type { AffiliateProgram, FreeReferral, ReferralResponse } from "@/lib/referralTypes";
 
 export type NotionEnv = {
   NOTION_TOKEN?: string;
