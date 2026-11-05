@@ -6,3 +6,5 @@ dist
 .vercel
 *.log
 package-lock.json
+.next
+next-env.d.ts

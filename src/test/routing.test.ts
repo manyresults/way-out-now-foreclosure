@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { defaultReferrals } from "@/data/defaultReferrals";
 import { pickAffiliates, pickResources, resourceTypes } from "@/lib/routing";
-import { clearReferralCache, fetchReferrals, isApprovedStatus, parseAffiliates, parseFreeReferrals } from "../../server/notion";
+import { clearReferralCache, fetchReferrals, isApprovedStatus, parseAffiliates, parseFreeReferrals } from "../server/notion";
 
 const rt = (plain_text: string) => [{ plain_text }];
 type Pages = Parameters<typeof parseAffiliates>[0];

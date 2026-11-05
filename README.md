@@ -24,7 +24,7 @@ The results page reads its referral programs live from Notion, so editing a row 
 1. Create an internal integration at <https://www.notion.so/profile/integrations> and copy its secret.
 2. In Notion, open each of the two databases > ••• > Connections > add the integration.
 3. `cp .env.example .env` and set `NOTION_TOKEN` locally; set the same variables in your host's environment settings (Vercel > Project > Settings > Environment Variables).
-4. Set `VITE_BOOKING_URL` to the strategy-session calendar link.
+4. Set `NEXT_PUBLIC_BOOKING_URL` to the strategy-session calendar link.
 
 To route a new affiliate category (e.g. Legal Services), add the row in Notion with Status "Approved"; `affiliateIntent` in `src/lib/routing.ts` decides when each category is shown.
 

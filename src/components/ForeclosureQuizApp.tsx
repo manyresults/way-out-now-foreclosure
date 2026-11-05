@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -187,22 +189,18 @@ const questions: Question[] = [
   },
 ];
 
-export function ForeclosureQuizApp() {
-  const navigate = useNavigate();
-  const location = useLocation();
+export function ForeclosureQuizApp({ initialData }: { initialData?: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
   
   const [step, setStep] = useState(() => {
-    return location.pathname === "/thank-you" ? 7 : 0;
+    return pathname === "/thank-you" ? 7 : 0;
   });
   
   const [answers, setAnswers] = useState<Record<string, string | string[]>>(() => {
-    if (location.state?.answers) return location.state.answers;
-    
-    const searchParams = new URLSearchParams(location.search);
-    const dataParam = searchParams.get("data");
-    if (dataParam) {
+    if (initialData) {
       try {
-        return JSON.parse(atob(dataParam));
+        return JSON.parse(atob(initialData));
       } catch (e) {
         console.error("Failed to parse data param", e);
       }
@@ -216,16 +214,16 @@ export function ForeclosureQuizApp() {
   const generateResults = () => buildResults(answers, referrals);
 
   useEffect(() => {
-    if (location.pathname === "/thank-you") {
+    if (pathname === "/thank-you") {
       if (!answers || !answers.q1) {
-        navigate("/");
+        router.replace("/");
       } else if (step !== 7) {
         setStep(7);
       }
-    } else if (location.pathname === "/" && step === 7) {
+    } else if (pathname === "/" && step === 7) {
       setStep(0);
     }
-  }, [location.pathname, answers, step, navigate]);
+  }, [pathname, answers, step, router]);
 
   const handleRadio = (qId: string, value: string) => {
     setAnswers({ ...answers, [qId]: value });
@@ -288,7 +286,7 @@ export function ForeclosureQuizApp() {
     };
 
     const answersData = btoa(JSON.stringify(answers));
-    const permalink = `${window.location.origin}/thank-you?data=${answersData}`;
+    const permalink = `${window.location.origin}/thank-you?data=${encodeURIComponent(answersData)}`;
 
     await postTrackingEvent(trackingPayload, {
       customFields: {
@@ -302,7 +300,7 @@ export function ForeclosureQuizApp() {
       }
     });
 
-    navigate(`/thank-you?data=${answersData}`, { state: { answers } });
+    router.push(`/thank-you?data=${encodeURIComponent(answersData)}`);
   };
 
   // ---------------------------------------------------------------------------
@@ -592,7 +590,7 @@ export function ForeclosureQuizApp() {
             {results.ctaCopy}
           </p>
           <Button size="lg" variant="secondary" className="px-8 py-6 h-auto text-lg font-bold rounded-full w-full md:w-auto" asChild>
-            <a href={import.meta.env.VITE_BOOKING_URL || "#"} target="_blank" rel="noopener noreferrer">
+            <a href={process.env.NEXT_PUBLIC_BOOKING_URL || "#"} target="_blank" rel="noopener noreferrer">
               <Calendar className="mr-2 w-5 h-5" />
               Book Free Strategy Session
             </a>
