@@ -302,30 +302,6 @@ export function ForeclosureQuizApp() {
       }
     });
 
-    try {
-      const supabaseUrl = "https://zyjnuobisgempsunljdh.supabase.co";
-      const supabaseKey = "sb_publishable_geAc7Gz9Aj0gg2SZUub1Gg_dAIl6h50";
-      
-      await fetch(`${supabaseUrl}/rest/v1/leads`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": supabaseKey,
-          "Authorization": `Bearer ${supabaseKey}`,
-          "Prefer": "return=minimal"
-        },
-        body: JSON.stringify({
-          name: fullName,
-          email: formData.email,
-          phone: formData.phone,
-          answers: answers,
-          permalink: permalink,
-        })
-      });
-    } catch (err) {
-      console.error("Supabase error:", err);
-    }
-
     navigate(`/thank-you?data=${answersData}`, { state: { answers } });
   };
 
