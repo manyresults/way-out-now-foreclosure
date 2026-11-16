@@ -15,7 +15,7 @@ export type FreeReferral = {
   name: string;
   /** Notion select value; kept as string so new options in Notion don't break the app. */
   type: string;
-  /** Short blurb shown on the results card (Talking Point, falling back to Description). */
+  /** Short blurb shown on the results card (Client Description, then Talking Point / Best For, then Description). */
   desc: string;
   link: string;
 };

@@ -57,14 +57,17 @@ async function queryDatabase(token: string, databaseId: string): Promise<NotionP
   return pages;
 }
 
+/** Drops internal tags like "Round Sky [Aggregate]" -> "Round Sky" when no Display Name is set. */
+const stripTag = (s: string) => s.replace(/\s*\[[^\]]*\]\s*$/, "").trim();
+
 export function parseFreeReferrals(pages: NotionPage[]): FreeReferral[] {
   return pages
     .map((page) => {
       const p = page.properties;
       return {
-        name: text(p["Agency"]),
+        name: text(p["Display Name"]) || stripTag(text(p["Agency"])),
         type: select(p["Type"]),
-        desc: text(p["Talking Point"]) || text(p["Description"]),
+        desc: text(p["Client Description"]) || text(p["Talking Point"]) || text(p["Description"]),
         link: url(p["Referral Action / Link"]),
       };
     })
@@ -80,9 +83,9 @@ export function parseAffiliates(pages: NotionPage[]): AffiliateProgram[] {
     .map((page) => {
       const p = page.properties;
       return {
-        name: text(p["Program Name"]),
+        name: text(p["Display Name"]) || stripTag(text(p["Program Name"])),
         category: stripEmoji(select(p["Category"])),
-        desc: text(p["Best For"]) || text(p["Description"]),
+        desc: text(p["Client Description"]) || text(p["Best For"]) || text(p["Description"]),
         link: url(p["Affiliate Link"]),
       };
     })
