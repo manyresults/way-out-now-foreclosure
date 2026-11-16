@@ -49,6 +49,14 @@ describe("notion parsing", () => {
     expect(parseAffiliates(pages)).toEqual([{ name: "Good", category: "Personal Loans", desc: "Cash fast", link: "https://x.test" }]);
   });
 
+  it("prefers client-facing Display Name / Description for Website and hides tags", () => {
+    const aff = parseAffiliates([
+      { properties: { "Program Name": { type: "title", title: rt("Round Sky [Aggregate]") }, Status: { type: "rich_text", rich_text: rt("Approved") }, "Best For": { type: "rich_text", rich_text: rt("easy sell") }, "Description for Website": { type: "rich_text", rich_text: rt("Fast cash options") }, "Affiliate Link": { type: "url", url: "https://x.test" } } },
+      { properties: { "Program Name": { type: "title", title: rt("Tagged [Aggregate]") }, "Display Name": { type: "rich_text", rich_text: rt("Nice Name") }, Status: { type: "rich_text", rich_text: rt("Live") }, "Best For": { type: "rich_text", rich_text: rt("Plain best for") }, "Affiliate Link": { type: "url", url: "https://y.test" } } },
+    ]);
+    expect(aff.map((a) => [a.name, a.desc])).toEqual([["Round Sky", "Fast cash options"], ["Nice Name", "Plain best for"]]);
+  });
+
   it("free referrals prefer Talking Point and drop rows without a link", () => {
     const pages = ( [
       { properties: { Agency: { type: "title", title: rt("PHFA") }, Type: { type: "select", select: { name: "Legal / Foreclosure" } }, "Talking Point": { type: "rich_text", rich_text: rt("TP") }, Description: { type: "rich_text", rich_text: rt("D") }, "Referral Action / Link": { type: "url", url: "https://phfa.org" } } },
