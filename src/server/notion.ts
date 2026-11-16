@@ -67,7 +67,7 @@ export function parseFreeReferrals(pages: NotionPage[]): FreeReferral[] {
       return {
         name: text(p["Display Name"]) || stripTag(text(p["Agency"])),
         type: select(p["Type"]),
-        desc: text(p["Client Description"]) || text(p["Talking Point"]) || text(p["Description"]),
+        desc: text(p["Description for Website"]) || text(p["Talking Point"]) || text(p["Description"]),
         link: url(p["Referral Action / Link"]),
       };
     })
@@ -85,7 +85,7 @@ export function parseAffiliates(pages: NotionPage[]): AffiliateProgram[] {
       return {
         name: text(p["Display Name"]) || stripTag(text(p["Program Name"])),
         category: stripEmoji(select(p["Category"])),
-        desc: text(p["Client Description"]) || text(p["Best For"]) || text(p["Description"]),
+        desc: text(p["Description for Website"]) || text(p["Best For"]) || text(p["Description"]),
         link: url(p["Affiliate Link"]),
       };
     })

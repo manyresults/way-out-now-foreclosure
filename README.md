@@ -11,10 +11,10 @@ The results page reads its referral programs live from Notion, so editing a row 
 
 | Notion database | Used for | Columns read |
 | --- | --- | --- |
-| Free Referral Options | "Recommended Free Resources" | Agency, Type, Talking Point, Referral Action / Link, plus optional Display Name and Client Description |
-| Approved Affiliate Programs | "Approved Partner Programs" | Program Name, Category, Status, Best For, Affiliate Link, plus optional Display Name and Client Description |
+| Free Referral Options | "Recommended Free Resources" | Agency, Type, Talking Point, Referral Action / Link, plus optional Display Name and Description for Website |
+| Approved Affiliate Programs | "Approved Partner Programs" | Program Name, Category, Status, Best For, Affiliate Link, plus optional Display Name and Description for Website |
 
-- **Client-facing wording:** add optional text columns **Display Name** and **Client Description** to either database. When filled they are shown to homeowners instead of Program Name / Agency and Best For / Talking Point (which stay as your internal notes). A trailing tag like `[Aggregate]` in the name is hidden automatically.
+- **Client-facing wording:** add a text column **Description for Website** (and optionally **Display Name**) to either database. When filled they are shown to homeowners instead of Program Name / Agency and Best For / Talking Point (which stay as your internal notes). A trailing tag like `[Aggregate]` in the name is hidden automatically.
 - **Only affiliate rows whose `Status` contains "Approved" or "Live" are shown.** "Not yet approved" or blank rows are never shown to homeowners.
 - Routing (which `Type`/`Category` fires for which answers) lives in `src/lib/routing.ts` and follows the *Find Your Way Out — Lead Magnet Spec*.
 - The browser calls `/api/referrals` (`api/referrals.ts` on Vercel; the same code is served by the Vite dev server). The Notion token never reaches the browser.
