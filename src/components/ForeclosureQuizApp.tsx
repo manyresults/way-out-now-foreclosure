@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useReferrals } from "@/hooks/use-referrals";
+import { ResultsView } from "@/components/ResultsView";
 import { generateResults as buildResults } from "@/lib/routing";
-import { CheckCircle2, ChevronRight, ArrowRight, Home, AlertTriangle, ExternalLink, Calendar, Info } from "lucide-react";
+import { CheckCircle2, ChevronRight, ArrowRight, Home, Calendar } from "lucide-react";
 
 type StandardTrackingFieldKey = string;
 type RegisteredCustomFieldId = string;
@@ -585,117 +586,13 @@ export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialDat
     if (referrals.isLoading) {
       return <div className="text-center text-lg text-muted-foreground py-24">Building your personalized plan…</div>;
     }
-    const results = generateResults();
-
     return (
-      <div className="max-w-4xl mx-auto animate-in fade-in zoom-in duration-500">
-        
-        {/* Dynamic Header */}
-        <div className="text-center mb-12">
-          <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary font-bold text-sm rounded-full tracking-wider mb-6">
-            {results.header.badge}
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">{results.header.title}</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {results.header.desc}
-          </p>
-        </div>
-
-        {pathname.startsWith("/results/") && (
-          <div className="max-w-2xl mx-auto mb-12 rounded-xl border bg-muted/30 p-4 text-center text-sm">
-            <p className="text-muted-foreground mb-2">
-              This is your personal results page. Bookmark it or save the link. It will always be here when you need it.
-            </p>
-            <button
-              type="button"
-              className="font-semibold text-primary underline underline-offset-4"
-              onClick={(e) => {
-                const button = e.currentTarget;
-                navigator.clipboard?.writeText(window.location.href).then(() => {
-                  button.textContent = "Link copied";
-                });
-              }}
-            >
-              Copy my link
-            </button>
-          </div>
-        )}
-
-        {/* Primary CTA Section */}
-        <div className="bg-primary text-primary-foreground p-8 md:p-12 rounded-3xl shadow-lg mb-16 text-center">
-          <h3 className="text-3xl font-bold mb-4">Book Your Free Strategy Session</h3>
-          <p className="text-lg opacity-90 max-w-2xl mx-auto mb-8">
-            {results.ctaCopy}
-          </p>
-          <Button size="lg" variant="secondary" className="px-8 py-6 h-auto text-lg font-bold rounded-full w-full md:w-auto" asChild>
-            <a href={process.env.NEXT_PUBLIC_BOOKING_URL || "#"} target="_blank" rel="noopener noreferrer">
-              <Calendar className="mr-2 w-5 h-5" />
-              Book Free Strategy Session
-            </a>
-          </Button>
-        </div>
-
-        {/* Free Resources Section */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-secondary rounded-lg">
-              <Info className="w-6 h-6 text-foreground" />
-            </div>
-            <h3 className="text-2xl font-bold">Recommended Free Resources</h3>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {results.resources.map((res, idx) => (
-              <Card key={idx} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle className="text-xl">{res.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="text-muted-foreground">{res.desc}</p>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full" asChild>
-                    <a href={res.link} target="_blank" rel="noopener noreferrer">
-                      Visit Website <ExternalLink className="ml-2 w-4 h-4" />
-                    </a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Affiliate Offers Section */}
-        {results.affiliates.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <CheckCircle2 className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold">Approved Partner Programs</h3>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              {results.affiliates.map((aff, idx) => (
-                <Card key={idx} className="border-primary/20 bg-primary/5 flex flex-col">
-                  <CardHeader>
-                    <CardTitle className="text-xl">{aff.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <p className="text-foreground/80">{aff.desc}</p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full" asChild>
-                      <a href={aff.link} target="_blank" rel="noopener noreferrer">
-                        Check Eligibility <ExternalLink className="ml-2 w-4 h-4" />
-                      </a>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-      </div>
+      <ResultsView
+        answers={answers}
+        results={generateResults()}
+        bookingUrl={process.env.NEXT_PUBLIC_BOOKING_URL || "#"}
+        showSaveLink={pathname.startsWith("/results/")}
+      />
     );
   }
 

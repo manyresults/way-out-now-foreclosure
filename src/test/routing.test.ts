@@ -3,6 +3,7 @@ import { defaultReferrals } from "@/data/defaultReferrals";
 import { pickAffiliates, pickResources, resourceTypes } from "@/lib/routing";
 import { clearReferralCache, fetchReferrals, isApprovedStatus, parseAffiliates, parseFreeReferrals } from "../server/notion";
 import { RESULT_ID_RE, loadResult, sanitizeAnswers, saveResult } from "../server/results";
+import { groupByCategory, partnerIcon } from "@/lib/resourceCategories";
 
 const rt = (plain_text: string) => [{ plain_text }];
 type Pages = Parameters<typeof parseAffiliates>[0];
@@ -137,5 +138,28 @@ describe("results storage", () => {
 
   it("throws when storage is not configured", async () => {
     await expect(saveResult({}, good)).rejects.toThrow(/not configured/);
+  });
+});
+
+describe("resource categories", () => {
+  it("groups by type in routing order, with friendly labels and a fallback for new types", () => {
+    const items = [
+      { type: "Legal / Foreclosure", name: "A" },
+      { type: "Income Loss / Hardship", name: "B" },
+      { type: "Legal / Foreclosure", name: "C" },
+      { type: "Brand New Notion Option", name: "D" },
+    ];
+    const groups = groupByCategory(items);
+    expect(groups.map((g) => [g.info.label, g.items.map((i) => i.name)])).toEqual([
+      ["Know Your Rights", ["A", "C"]],
+      ["Emergency Financial Help", ["B"]],
+      ["More Free Resources", ["D"]],
+    ]);
+  });
+
+  it("picks an icon for every partner category and the unknown ones", () => {
+    for (const c of ["Personal Loans", "Legal Services", "Credit Repair & Debt Relief", "Something New"]) {
+      expect(partnerIcon(c)).toBeTruthy();
+    }
   });
 });
