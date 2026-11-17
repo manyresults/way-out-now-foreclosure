@@ -10,6 +10,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useReferrals } from "@/hooks/use-referrals";
 import { ResultsView } from "@/components/ResultsView";
+import { LandingAbout } from "@/components/LandingAbout";
+import Image from "next/image";
 import { generateResults as buildResults } from "@/lib/routing";
 import { CheckCircle2, ChevronRight, ArrowRight, Home, Calendar } from "lucide-react";
 
@@ -332,7 +334,7 @@ export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialDat
         <div className="text-center space-y-6">
           <div className="flex flex-col items-center justify-center space-y-4 mb-4">
             <span className="inline-block py-1.5 px-4 rounded-full bg-primary/10 text-primary text-sm font-bold tracking-widest uppercase">
-              Stop the Guesswork
+              Helping Pennsylvania Homeowners Find Their Way
             </span>
             <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight max-w-4xl mx-auto text-foreground leading-tight">
               See Exactly Which Relief Programs <span className="text-primary relative whitespace-nowrap"><span className="relative z-10">You Qualify For</span><svg className="absolute w-full h-3 -bottom-1 left-0 text-secondary -z-0" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="6" fill="transparent"/></svg></span>
@@ -358,6 +360,9 @@ export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialDat
             </p>
           </div>
         </div>
+
+        {/* About us + mission */}
+        <LandingAbout onStart={nextStep} />
 
         {/* Why Choose Us Section */}
         <div className="bg-secondary/10 rounded-3xl p-8 md:p-12 space-y-12">
@@ -406,9 +411,12 @@ export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialDat
             </Button>
           </div>
           <div>
-            <img 
-              src="https://vibe.filesafe.space/1783028068564314446/assets/14835ee9-80f6-4514-90d7-ead2bb14e7c5.png" 
-              alt="Real estate consultation" 
+            <Image
+              src="/images/neighborhood-aerial.jpg"
+              alt="Aerial view of a residential neighborhood"
+              width={665}
+              height={459}
+              sizes="(min-width: 768px) 480px, 100vw"
               className="rounded-2xl shadow-xl w-full object-cover aspect-video"
             />
           </div>
