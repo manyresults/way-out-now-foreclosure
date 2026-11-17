@@ -29,6 +29,37 @@ The results page reads its referral programs live from Notion, so editing a row 
 
 To route a new affiliate category (e.g. Legal Services), add the row in Notion with Status "Approved"; `affiliateIntent` in `src/lib/routing.ts` decides when each category is shown.
 
+## GoHighLevel (lead delivery)
+
+When someone finishes the quiz, the browser posts to `/api/submit`. The server saves their answers under a
+`/results/<id>` link, builds the payload below and POSTs it to your GHL **Inbound Webhook** (retrying up to 3
+times). If GHL cannot be reached the visitor sees an error and can retry, so a lead is never silently dropped.
+
+**Setup**
+1. In GHL: Automation > Workflows > new workflow > trigger **Inbound Webhook**. Copy its URL.
+2. In Vercel > Settings > Environment Variables add `GHL_WEBHOOK_URL` (Production, and Preview if you want
+   test deploys to work). Do not prefix it with `NEXT_PUBLIC_`. Redeploy.
+3. Submit one fake lead. In the workflow trigger, fetch the sample request so GHL learns the field names.
+4. Add a **Create/Update Contact** action and map the fields below (standard fields use GHL's own names).
+
+**Payload** (flat JSON)
+
+| Field | Example |
+| --- | --- |
+| `event`, `schema_version`, `submitted_at` | `foreclosure_quiz_completed`, `1`, ISO timestamp |
+| `first_name`, `last_name`, `full_name`, `email` | `Jane`, `Doe`, `Jane Doe`, `jane@example.com` (email lowercased) |
+| `phone` / `phone_raw` | `+12155550100` (E.164 for US numbers) / as typed |
+| `foreclosure_status`, `payments_behind`, `sale_date_set`, `goal` | answer codes, e.g. `pre` |
+| `..._label` versions of the four above | readable text, e.g. `Keep the house` |
+| `hardships` / `hardships_labels` | `["income","divorce"]` / `Income loss / job change, ...` |
+| `results_url`, `results_id` | `https://<site>/results/a1b2c3d4`, `a1b2c3d4` |
+| `results_badge`, `results_headline` | the headline the visitor saw |
+| `resources`, `partners` | arrays of `{ name, category, link }` |
+| `resources_text`, `partners_text` | `- Name: link` lines, ready for a custom field or email |
+| `landing_url`, `referrer`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `gclid`, `fbclid` | only present when set |
+
+A hidden spam-trap field on the form silently drops most bots.
+
 ## Personal results links
 
 When someone finishes the quiz, their answers are saved under a random 8-character hex id and they land on
