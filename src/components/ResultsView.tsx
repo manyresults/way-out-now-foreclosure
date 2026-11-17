@@ -17,9 +17,9 @@ export function ResultsView({ answers, results, bookingUrl, showSaveLink }: { an
   const SituationIcon = situationIcon(answers);
   const groups = groupByCategory(results.resources);
   const steps: { icon: LucideIcon; title: string; desc: string }[] = [
-    { icon: CalendarCheck, title: "Talk with us", desc: "A free strategy session to map every option." },
     { icon: LifeBuoy, title: "Reach out to free help", desc: "Agencies and programs matched to your situation." },
     ...(results.affiliates.length > 0 ? [{ icon: ListChecks, title: "Compare partner options", desc: "See what you may qualify for." }] : []),
+    { icon: CalendarCheck, title: "Talk with us", desc: "A free strategy session to map every option." },
   ];
 
   return (
@@ -69,33 +69,6 @@ export function ResultsView({ answers, results, bookingUrl, showSaveLink }: { an
           </button>
         </div>
       )}
-
-      {/* Primary CTA */}
-      <div className="bg-primary text-primary-foreground p-8 md:p-12 rounded-3xl shadow-lg mb-16 text-center">
-        <h3 className="text-3xl font-bold mb-4">Book Your Free Strategy Session</h3>
-        <p className="text-lg opacity-90 max-w-2xl mx-auto mb-6">{results.ctaCopy}</p>
-        <ul className="mb-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
-          {[
-            [Clock, "30 to 45 minutes"],
-            [ShieldCheck, "No obligation"],
-            [BadgeCheck, "Free to book"],
-          ].map(([Icon, text]) => {
-            const I = Icon as LucideIcon;
-            return (
-              <li key={text as string} className="flex items-center gap-2">
-                <I className="h-4 w-4" aria-hidden="true" />
-                {text as string}
-              </li>
-            );
-          })}
-        </ul>
-        <Button size="lg" variant="secondary" className="px-8 py-6 h-auto text-lg font-bold rounded-full w-full md:w-auto" asChild>
-          <a href={bookingUrl} target="_blank" rel="noopener noreferrer">
-            <Calendar className="mr-2 w-5 h-5" aria-hidden="true" />
-            Book Free Strategy Session
-          </a>
-        </Button>
-      </div>
 
       {/* Free resources, grouped by category */}
       <div className="mb-16">
@@ -178,6 +151,33 @@ export function ResultsView({ answers, results, bookingUrl, showSaveLink }: { an
           </div>
         </div>
       )}
+
+      {/* Primary CTA */}
+      <div className="bg-primary text-primary-foreground p-8 md:p-12 rounded-3xl shadow-lg mb-8 text-center">
+        <h3 className="text-3xl font-bold mb-4">Book Your Free Strategy Session</h3>
+        <p className="text-lg opacity-90 max-w-2xl mx-auto mb-6">{results.ctaCopy}</p>
+        <ul className="mb-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium">
+          {[
+            [Clock, "30 to 45 minutes"],
+            [ShieldCheck, "No obligation"],
+            [BadgeCheck, "Free to book"],
+          ].map(([Icon, text]) => {
+            const I = Icon as LucideIcon;
+            return (
+              <li key={text as string} className="flex items-center gap-2">
+                <I className="h-4 w-4" aria-hidden="true" />
+                {text as string}
+              </li>
+            );
+          })}
+        </ul>
+        <Button size="lg" variant="secondary" className="px-8 py-6 h-auto text-lg font-bold rounded-full w-full md:w-auto" asChild>
+          <a href={bookingUrl} target="_blank" rel="noopener noreferrer">
+            <Calendar className="mr-2 w-5 h-5" aria-hidden="true" />
+            Book Free Strategy Session
+          </a>
+        </Button>
+      </div>
     </div>
   );
 }
