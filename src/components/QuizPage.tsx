@@ -1,6 +1,7 @@
 import { ForeclosureQuizApp } from "@/components/ForeclosureQuizApp";
+import type { Answers } from "@/lib/routing";
 
-export const QuizPage = ({ initialData }: { initialData?: string }) => {
+export const QuizPage = ({ initialData, initialAnswers }: { initialData?: string; initialAnswers?: Answers }) => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
       {/* Background visual elements */}
@@ -17,7 +18,7 @@ export const QuizPage = ({ initialData }: { initialData?: string }) => {
       </header>
 
       <main className="container mx-auto px-4 pb-24 pt-8 flex-grow">
-        <ForeclosureQuizApp initialData={initialData} />
+        <ForeclosureQuizApp initialData={initialData} initialAnswers={initialAnswers} />
       </main>
 
       <footer className="border-t bg-muted/10 py-8 text-xs text-muted-foreground mt-auto z-10 relative">

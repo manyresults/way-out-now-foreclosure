@@ -29,6 +29,20 @@ The results page reads its referral programs live from Notion, so editing a row 
 
 To route a new affiliate category (e.g. Legal Services), add the row in Notion with Status "Approved"; `affiliateIntent` in `src/lib/routing.ts` decides when each category is shown.
 
+## Personal results links
+
+When someone finishes the quiz, their answers are saved under a random 8-character hex id and they land on
+`/results/<id>`. The link never expires, the page always shows the current Notion referrals, and the same
+link is stored on the contact in GoHighLevel ("Results URL"). Only the quiz answers are stored (no name, email
+or phone).
+
+- Storage is Upstash Redis from the Vercel Marketplace: Vercel project > **Storage** > **Create Database** >
+  **Upstash for Redis** > connect it to the project, then redeploy. It adds `UPSTASH_REDIS_REST_URL` and
+  `UPSTASH_REDIS_REST_TOKEN` (or the `KV_REST_API_*` equivalents) automatically.
+- If storage is missing or down, the quiz still completes and falls back to the old
+  `/thank-you?data=...` link, so lead capture is never blocked. Old `/thank-you` links keep working.
+- `/results/*` is `noindex` and disallowed in `robots.txt`.
+
 ## Requirements
 
 - Node.js 18+ (LTS recommended)

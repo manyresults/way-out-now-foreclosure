@@ -189,15 +189,18 @@ const questions: Question[] = [
   },
 ];
 
-export function ForeclosureQuizApp({ initialData }: { initialData?: string }) {
+const isResultsPath = (path: string) => path === "/thank-you" || path.startsWith("/results/");
+
+export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialData?: string; initialAnswers?: Record<string, string | string[]> }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   
   const [step, setStep] = useState(() => {
-    return pathname === "/thank-you" ? 7 : 0;
+    return isResultsPath(pathname) ? 7 : 0;
   });
   
   const [answers, setAnswers] = useState<Record<string, string | string[]>>(() => {
+    if (initialAnswers) return initialAnswers;
     if (initialData) {
       try {
         return JSON.parse(atob(initialData));
@@ -214,7 +217,7 @@ export function ForeclosureQuizApp({ initialData }: { initialData?: string }) {
   const generateResults = () => buildResults(answers, referrals);
 
   useEffect(() => {
-    if (pathname === "/thank-you") {
+    if (isResultsPath(pathname)) {
       if (!answers || !answers.q1) {
         router.replace("/");
       } else if (step !== 7) {
@@ -285,8 +288,23 @@ export function ForeclosureQuizApp({ initialData }: { initialData?: string }) {
       },
     };
 
-    const answersData = btoa(JSON.stringify(answers));
-    const permalink = `${window.location.origin}/thank-you?data=${encodeURIComponent(answersData)}`;
+    // Save the answers under a short evergreen id: /results/<id>. If storage is down, fall back to the
+    // legacy self-contained link so lead capture is never blocked.
+    let resultsPath: string;
+    try {
+      const saved = await fetch("/api/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers }),
+      });
+      if (!saved.ok) throw new Error(`results ${saved.status}`);
+      const { id } = (await saved.json()) as { id: string };
+      resultsPath = `/results/${id}`;
+    } catch (err) {
+      console.error("Could not save results, using legacy link", err);
+      resultsPath = `/thank-you?data=${encodeURIComponent(btoa(JSON.stringify(answers)))}`;
+    }
+    const permalink = `${window.location.origin}${resultsPath}`;
 
     await postTrackingEvent(trackingPayload, {
       customFields: {
@@ -300,7 +318,7 @@ export function ForeclosureQuizApp({ initialData }: { initialData?: string }) {
       }
     });
 
-    router.push(`/thank-you?data=${encodeURIComponent(answersData)}`);
+    router.push(resultsPath);
   };
 
   // ---------------------------------------------------------------------------
@@ -582,6 +600,26 @@ export function ForeclosureQuizApp({ initialData }: { initialData?: string }) {
             {results.header.desc}
           </p>
         </div>
+
+        {pathname.startsWith("/results/") && (
+          <div className="max-w-2xl mx-auto mb-12 rounded-xl border bg-muted/30 p-4 text-center text-sm">
+            <p className="text-muted-foreground mb-2">
+              This is your personal results page. Bookmark it or save the link. It will always be here when you need it.
+            </p>
+            <button
+              type="button"
+              className="font-semibold text-primary underline underline-offset-4"
+              onClick={(e) => {
+                const button = e.currentTarget;
+                navigator.clipboard?.writeText(window.location.href).then(() => {
+                  button.textContent = "Link copied";
+                });
+              }}
+            >
+              Copy my link
+            </button>
+          </div>
+        )}
 
         {/* Primary CTA Section */}
         <div className="bg-primary text-primary-foreground p-8 md:p-12 rounded-3xl shadow-lg mb-16 text-center">

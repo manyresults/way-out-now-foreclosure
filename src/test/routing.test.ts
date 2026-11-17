@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { defaultReferrals } from "@/data/defaultReferrals";
 import { pickAffiliates, pickResources, resourceTypes } from "@/lib/routing";
 import { clearReferralCache, fetchReferrals, isApprovedStatus, parseAffiliates, parseFreeReferrals } from "../server/notion";
+import { RESULT_ID_RE, loadResult, sanitizeAnswers, saveResult } from "../server/results";
 
 const rt = (plain_text: string) => [{ plain_text }];
 type Pages = Parameters<typeof parseAffiliates>[0];
@@ -91,5 +92,50 @@ describe("fetchReferrals", () => {
 
   it("throws without a token so the API answers 502 and the client falls back", async () => {
     await expect(fetchReferrals({})).rejects.toThrow(/NOTION_TOKEN/);
+  });
+});
+
+describe("results storage", () => {
+  const env = { UPSTASH_REDIS_REST_URL: "https://redis.test", UPSTASH_REDIS_REST_TOKEN: "t" };
+  const good = { q1: "pre", q2: "1-2", q3: "no", q4: "keep", q5: ["job", "illness"] };
+
+  it("only accepts the quiz's own answer shape", () => {
+    expect(sanitizeAnswers(good)).toEqual(good);
+    expect(sanitizeAnswers({ ...good, extra: "x" })).toBeNull();
+    expect(sanitizeAnswers({ q1: "pre" })).toBeNull();
+    expect(sanitizeAnswers({ ...good, q2: ["not", "a", "string"] })).toBeNull();
+    expect(sanitizeAnswers({ ...good, q1: "x".repeat(500) })).toBeNull();
+    expect(sanitizeAnswers("nope")).toBeNull();
+  });
+
+  it("saves under a fresh 8-hex id with SET NX, retrying on a collision", async () => {
+    const calls: string[][] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_u: string, init: RequestInit) => {
+      const cmd = JSON.parse(init.body as string) as string[];
+      calls.push(cmd);
+      return new Response(JSON.stringify({ result: calls.length === 1 ? null : "OK" }));
+    }));
+    const id = await saveResult(env, good);
+    expect(id).toMatch(RESULT_ID_RE);
+    expect(calls).toHaveLength(2);
+    expect(calls[0][0]).toBe("SET");
+    expect(calls[0][3]).toBe("NX");
+    expect(calls[0][1]).not.toBe(calls[1][1]);
+    vi.unstubAllGlobals();
+  });
+
+  it("loads a stored result, and returns null for unknown or malformed ids", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (_u: string, init: RequestInit) => {
+      const [, k] = JSON.parse(init.body as string) as string[];
+      return new Response(JSON.stringify({ result: k === "result:a1b2c3d4" ? JSON.stringify({ answers: good, createdAt: "now" }) : null }));
+    }));
+    expect((await loadResult(env, "a1b2c3d4"))?.answers).toEqual(good);
+    expect(await loadResult(env, "ffffffff")).toBeNull();
+    expect(await loadResult(env, "../etc/passwd")).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it("throws when storage is not configured", async () => {
+    await expect(saveResult({}, good)).rejects.toThrow(/not configured/);
   });
 });
