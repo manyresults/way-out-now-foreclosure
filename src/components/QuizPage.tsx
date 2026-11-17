@@ -1,4 +1,5 @@
 import { ForeclosureQuizApp } from "@/components/ForeclosureQuizApp";
+import { SiteFooter } from "@/components/SiteFooter";
 import type { Answers } from "@/lib/routing";
 
 export const QuizPage = ({ initialData, initialAnswers }: { initialData?: string; initialAnswers?: Answers }) => {
@@ -21,17 +22,7 @@ export const QuizPage = ({ initialData, initialAnswers }: { initialData?: string
         <ForeclosureQuizApp initialData={initialData} initialAnswers={initialAnswers} />
       </main>
 
-      <footer className="border-t bg-muted/10 py-8 text-xs text-muted-foreground mt-auto z-10 relative">
-        <div className="container mx-auto px-4 max-w-3xl text-center space-y-3">
-          <div className="font-semibold text-sm text-foreground/80">About</div>
-          <p className="leading-relaxed">
-            Way Out Now provides real estate guidance, property evaluation, and connection to professional resources to help property owners explore available options. We may connect you with licensed agents, investors, contractors, or other professionals.
-          </p>
-          <p>
-            &copy; 2026 Way Out Now Solutions - Wisps of Night Properties LLC
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 };
