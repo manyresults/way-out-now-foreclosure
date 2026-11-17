@@ -13,184 +13,8 @@ import { ResultsView } from "@/components/ResultsView";
 import { LandingAbout } from "@/components/LandingAbout";
 import Image from "next/image";
 import { generateResults as buildResults } from "@/lib/routing";
+import { questions } from "@/lib/quizQuestions";
 import { CheckCircle2, ChevronRight, ArrowRight, Home, Calendar } from "lucide-react";
-
-type StandardTrackingFieldKey = string;
-type RegisteredCustomFieldId = string;
-type TrackingCustomField = { value?: unknown; label: string };
-type TrackingFileField = { file?: File; label: string };
-type TrackingImageDataField = { dataUrl?: string; label: string };
-
-const postTrackingEvent = async (
-  trackingPayload: Record<string, unknown> & {
-    formData: Record<StandardTrackingFieldKey, unknown>;
-    formLabels: Record<StandardTrackingFieldKey, string>;
-  },
-  options: {
-    customFields?: Record<RegisteredCustomFieldId, TrackingCustomField>;
-    fileFields?: Record<RegisteredCustomFieldId, TrackingFileField>;
-    imageDataFields?: Record<RegisteredCustomFieldId, TrackingImageDataField>;
-  } = {},
-) => {
-  const { customFields = {}, fileFields = {}, imageDataFields = {} } = options;
-  const eventPayload = {
-    ...trackingPayload,
-    formData: { ...trackingPayload.formData },
-    formLabels: { ...trackingPayload.formLabels },
-  };
-  const body = new FormData();
-
-  for (const [key, field] of Object.entries(customFields)) {
-    if (field.value === undefined) continue;
-    eventPayload.formData[key] = field.value;
-    eventPayload.formLabels[key] = field.label;
-  }
-
-  for (const [key, field] of Object.entries(imageDataFields)) {
-    const dataUrl = field.dataUrl;
-    if (!dataUrl) continue;
-    if (!dataUrl.startsWith("data:image/")) {
-      throw new Error("Image data field must be a data:image/* base64 string");
-    }
-    eventPayload.formData[key] = dataUrl;
-    eventPayload.formLabels[key] = field.label;
-  }
-
-  for (const [key, field] of Object.entries(fileFields)) {
-    const file = field.file;
-    if (!file) continue;
-    if (file.size > 50 * 1024 * 1024) {
-      throw new Error("File must be 50 MB or smaller");
-    }
-    eventPayload.formData[key] = {
-      filename: file.name,
-      size: file.size,
-      type: file.type || "application/octet-stream",
-    };
-    eventPayload.formLabels[key] = field.label;
-    body.append(key, file, file.name);
-  }
-
-  for (const key of Object.keys(eventPayload.formData)) {
-    eventPayload.formLabels[key] ||= key;
-  }
-
-  body.append("event", JSON.stringify(eventPayload));
-
-  try {
-    // Hidden iframe workaround for CORS bypass when exported
-    const iframeName = 'hidden_iframe_' + Date.now();
-    const iframe = document.createElement('iframe');
-    iframe.name = iframeName;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://backend.leadconnectorhq.com/external-tracking/events';
-    form.target = iframeName;
-    form.enctype = 'multipart/form-data';
-
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'event';
-    input.value = JSON.stringify(eventPayload);
-    form.appendChild(input);
-
-    for (const [key, field] of Object.entries(fileFields)) {
-      if (field.file) {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.name = key;
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(field.file);
-        fileInput.files = dataTransfer.files;
-        form.appendChild(fileInput);
-      }
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    // Clean up after a short delay
-    setTimeout(() => {
-      if (document.body.contains(form)) document.body.removeChild(form);
-      if (document.body.contains(iframe)) document.body.removeChild(iframe);
-    }, 3000);
-  } catch (err) {
-    console.error("Tracking error", err);
-  }
-};
-
-type Question = {
-  id: string;
-  title: string;
-  type: "radio" | "checkbox";
-  optional?: boolean;
-  options: {
-    value: string;
-    label: string;
-    desc?: string;
-  }[];
-};
-
-const questions: Question[] = [
-  {
-    id: "q1",
-    title: "Where do things stand right now?",
-    type: "radio",
-    options: [
-      { value: "pre", label: "I'm behind, but no notice yet", desc: "Missed payments or worried I will — nothing formal has arrived" },
-      { value: "notice", label: "I received a foreclosure notice", desc: "A default or intent-to-foreclose letter has come from the lender" },
-      { value: "active", label: "I'm already in foreclosure", desc: "A lawsuit has been filed, or a sheriff sale date is scheduled" },
-    ],
-  },
-  {
-    id: "q2",
-    title: "How many payments are you behind?",
-    type: "radio",
-    options: [
-      { value: "0", label: "Current, just worried" },
-      { value: "1-2", label: "1–2 behind" },
-      { value: "3+", label: "3 or more behind" },
-      { value: "unsure", label: "Not sure" },
-    ],
-  },
-  {
-    id: "q3",
-    title: "Has a sheriff sale or auction date been set?",
-    type: "radio",
-    options: [
-      { value: "yes", label: "Date set" },
-      { value: "no", label: "No date yet" },
-      { value: "unsure", label: "Not sure" },
-    ],
-  },
-  {
-    id: "q4",
-    title: "What is your primary goal?",
-    type: "radio",
-    options: [
-      { value: "keep", label: "Keep the house", desc: "Catch up, modify the loan, or stop the process" },
-      { value: "sell", label: "Sell and move on", desc: "Get out from under it, on the best terms possible" },
-      { value: "unsure", label: "I don't know yet", desc: "I want to see every option before deciding" },
-    ],
-  },
-  {
-    id: "q5",
-    title: "What is the main cause of the hardship? (Select all that apply)",
-    type: "checkbox",
-    optional: true,
-    options: [
-      { value: "income", label: "Income loss / job change" },
-      { value: "medical", label: "Medical / illness" },
-      { value: "divorce", label: "Divorce / separation" },
-      { value: "death", label: "Death in family" },
-      { value: "inherited", label: "Inherited / vacant property" },
-      { value: "other", label: "Something else" },
-    ],
-  },
-];
 
 const isResultsPath = (path: string) => path === "/thank-you" || path.startsWith("/results/");
 
@@ -216,6 +40,8 @@ export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialDat
   
   const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", phone: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const referrals = useReferrals();
   const generateResults = () => buildResults(answers, referrals);
 
@@ -249,79 +75,32 @@ export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialDat
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setIsSubmitting(true);
-    
-    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-    
-    // Generate results summary for CRM
-    const results = generateResults();
-    let resultsSummary = `Status: ${answers.q1}\nPayments Behind: ${answers.q2}\nSale Date: ${answers.q3}\nGoal: ${answers.q4}\nHardships: ${Array.isArray(answers.q5) ? answers.q5.join(', ') : answers.q5}\n\n`;
-    resultsSummary += `RESOURCES:\n${results.resources.map(r => `- ${r.name}: ${r.link}`).join('\n')}\n\n`;
-    resultsSummary += `PARTNERS:\n${results.affiliates.map(p => `- ${p.name}: ${p.link}`).join('\n')}`;
+    setSubmitError("");
 
-    const trackingPayload = {
-      type: "external_form_submission",
-      timestamp: Date.now(),
-      formId: "Foreclosure Quiz Assessment",
-      formData: {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        name: fullName, 
-        email: formData.email,
-        phone: formData.phone,
-      },
-      formLabels: {
-        first_name: "First Name",
-        last_name: "Last Name",
-        name: "Full Name",
-        email: "Email",
-        phone: "Phone",
-      },
-      url: window.location.href,
-      title: document.title,
-      path: window.location.pathname,
-      userAgent: navigator.userAgent,
-      trackingId: "tk_22f6411a65374540a7215cef24c21599",
-      locationId: "fqegmPESSsh8C2xvYWai",
-      sessionId: crypto.randomUUID(),
-      properties: {
-        deviceType: /Mobile|Android|iPhone/i.test(navigator.userAgent)
-          ? "mobile"
-          : "desktop",
-      },
-    };
+    // Where this visitor came from (ads, email, social), for the CRM.
+    const params = new URLSearchParams(window.location.search);
+    const attribution: Record<string, string> = { landing_url: window.location.href, referrer: document.referrer };
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"]) {
+      const value = params.get(key);
+      if (value) attribution[key] = value;
+    }
 
-    // Save the answers under a short evergreen id: /results/<id>. If storage is down, fall back to the
-    // legacy self-contained link so lead capture is never blocked.
-    let resultsPath: string;
     try {
-      const saved = await fetch("/api/results", {
+      const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ contact: formData, answers, attribution, website: honeypot }),
       });
-      if (!saved.ok) throw new Error(`results ${saved.status}`);
-      const { id } = (await saved.json()) as { id: string };
-      resultsPath = `/results/${id}`;
+      if (!res.ok) throw new Error(`submit ${res.status}`);
+      const { redirect } = (await res.json()) as { redirect: string };
+      router.push(redirect);
     } catch (err) {
-      console.error("Could not save results, using legacy link", err);
-      resultsPath = `/thank-you?data=${encodeURIComponent(btoa(JSON.stringify(answers)))}`;
+      console.error("Quiz submission failed", err);
+      setSubmitError("Something went wrong on our end and we couldn't save your information. Please check your details and try again, or call us at 215-999-7208.");
+      setIsSubmitting(false);
     }
-    const permalink = `${window.location.origin}${resultsPath}`;
-
-    await postTrackingEvent(trackingPayload, {
-      customFields: {
-        "4y57aA1fTDG3QdeCMBVx": { value: answers.q1, label: "Foreclosure Status" },
-        "loeyZ7V4TY6VAf3r0UgD": { value: answers.q2, label: "Payments Behind" },
-        "GPsmDYOkIGseylA7HETb": { value: answers.q3, label: "Sale Date Set" },
-        "tVjgVMqp9ppOrIJeliUI": { value: answers.q4, label: "Goal" },
-        "cAhVdfuedHyTYuoOz665": { value: Array.isArray(answers.q5) ? answers.q5.join(", ") : answers.q5, label: "Hardship" },
-        "kx1cIiHVDbbc9Bk3o28p": { value: resultsSummary, label: "Foreclosure Quiz Results" },
-        "S1pI1XMuvBVkKtzJstL1": { value: permalink, label: "Results URL" },
-      }
-    });
-
-    router.push(resultsPath);
   };
 
   // ---------------------------------------------------------------------------
@@ -574,9 +353,19 @@ export function ForeclosureQuizApp({ initialData, initialAnswers }: { initialDat
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
+              {/* Spam trap: hidden from people, bots tend to fill it. */}
+              <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                <label htmlFor="website">Website</label>
+                <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
+              </div>
               <div className="text-xs text-muted-foreground text-center mt-4">
                 By continuing, you agree to receive communications regarding your options. Se habla español.
               </div>
+              {submitError && (
+                <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                  {submitError}
+                </p>
+              )}
               <Button type="submit" size="lg" className="w-full text-lg py-6 h-auto font-bold mt-4" disabled={isSubmitting}>
                 {isSubmitting ? "Generating Plan..." : "View My Results"}
               </Button>
