@@ -43,7 +43,7 @@ export function resultHeader(answers: Answers) {
 
 export function ctaCopy(answers: Answers) {
   if (answers.q4 === "keep") {
-    return "We'll map every way to keep the house — loan modification, repayment plans, and emergency funding — alongside the free resources below.";
+    return "We'll map every way to keep the house — loan modification, repayment plans, and emergency funding — alongside the free resources above.";
   }
   if (answers.q4 === "sell") {
     return "We'll walk through a straightforward cash offer, listing to maximize value, or a leaseback that lets you stay as a tenant.";
